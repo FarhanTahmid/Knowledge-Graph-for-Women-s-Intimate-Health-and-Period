@@ -1,0 +1,49 @@
+Create User Nodes:
+
+LOAD CSV WITH HEADERS FROM 'file:///users.csv' AS row
+CREATE (:User {user_id: row.user_id});
+
+Create Post Nodes:
+
+LOAD CSV WITH HEADERS FROM 'file:///posts.csv' AS row
+CREATE (:Post {
+    post_id: row.post_id,
+    subreddit: row.subreddit,
+    created_utc: row.created_utc,
+    selftext: row.selftext,
+    post_url: row.post_url,
+    post_title: row.post_title,
+    link_flair_text: row.link_flair_text,
+    score: row.score,
+    num_comments: row.num_comments,
+    upvote_ratio: row.upvote_ratio,
+    post_author: row.post_author
+});
+
+Create Comment Nodes:
+
+LOAD CSV WITH HEADERS FROM 'file:///comments.csv' AS row
+CREATE (:Comment {
+    post_id: row.post_id,
+    comment: row.comment,
+    author: row.author
+});
+
+
+Create Relationships between Posts and Comments:
+
+LOAD CSV WITH HEADERS FROM 'file:///comments.csv' AS row
+MATCH (p:Post {post_id: row.post_id}), (c:Comment {post_id: row.post_id})
+CREATE (p)-[:HAS_COMMENT]->(c);
+
+Create Relationships between Users and Posts:
+
+LOAD CSV WITH HEADERS FROM 'file:///posts.csv' AS row
+MATCH (u:User {user_id: row.post_author}), (p:Post {post_id: row.post_id})
+CREATE (u)-[:CREATES]->(p);
+
+Create Relationships between Users and Comments:
+
+LOAD CSV WITH HEADERS FROM 'file:///comments.csv' AS row
+MATCH (u:User {user_id: row.author}), (c:Comment {comment: row.comment})
+CREATE (u)-[:WRITES]->(c);
